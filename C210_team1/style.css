@@ -1,0 +1,342 @@
+/* style.css - Fix: Remove exaggerated spacing (Force Block Layout) */
+
+:root {
+    /* === VS Code Dark+ 精确文字配色 === */
+    --c-var: #9cdcfe;       
+    --text-main: #d4d4d4;   
+    --c-blue: #569cd6;      
+    --c-purple: #c586c0;    
+    --c-teal: #4ec9b0;      
+    --c-func: #dcdcaa;      
+    --c-bracket: #ffd700;   
+    --c-green: #6a9955;     
+    --c-orange: #ce9178;    
+    --c-num: #b5cea8;       
+    
+    /* 核心视觉变量 */
+    --glass-bg: rgba(20, 20, 25, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+body { 
+    background-color: #000; 
+    color: var(--text-main); 
+    font-family: 'Inter', sans-serif; 
+    overflow: hidden; 
+    width: 100vw; height: 100vh; 
+    margin: 0; padding: 0; 
+    cursor: default; 
+    user-select: none; -webkit-user-select: none;
+}
+
+/* === 1. 背景视频 === */
+#bg-video { 
+    position: fixed; top: 50%; left: 50%; 
+    min-width: 100%; min-height: 100%; 
+    transform: translate(-50%, -50%) scale(1.05);
+    z-index: 0; object-fit: cover; 
+    filter: brightness(0.4) contrast(1.2) blur(5px); 
+}
+
+#active-stage { position: absolute; inset: 0; z-index: 10; display: flex; justify-content: center; align-items: center; pointer-events: none; }
+.focus-card { pointer-events: auto; }
+
+/* === 2. 主卡片容器 === */
+.focus-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--glass-bg); 
+    backdrop-filter: blur(40px);  
+    border-radius: 12px; 
+    border: 1px solid var(--glass-border); 
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 20px rgba(255,255,255,0.03);
+    width: 92vw; max-width: 1600px; height: 85vh; 
+    opacity: 0; transition: opacity 0.4s ease-out; overflow: hidden; position: relative;
+}
+.focus-card.intro-layout { justify-content: center; align-items: center; background: rgba(30,30,30,0.3); }
+
+/* 顶部栏 */
+.card-header { 
+    flex-shrink: 0; 
+    height: 50px;
+    background: rgba(0, 0, 0, 0.2); 
+    border-bottom: 1px solid rgba(255,255,255,0.05); 
+    padding: 0 25px; display: flex; justify-content: space-between; align-items: center; z-index: 20; 
+}
+
+/* 代码滚动区 */
+.code-wrapper {
+    position: relative; 
+    flex-grow: 1; 
+    overflow-y: auto; 
+    overflow-x: auto; 
+    display: block; /* 确保这里是 Block */
+    background: transparent;
+}
+.code-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+.code-wrapper::-webkit-scrollbar-track { background: transparent; }
+.code-wrapper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+.code-wrapper::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* 代码内容区域 [FIXED HERE] */
+.code-container { 
+
+    display: block !important; 
+    
+    padding: 60px 40px; 
+    font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace; 
+    font-size: 28px; 
+    line-height: 1.6; 
+    
+    height: auto !important;
+    min-height: 100%; 
+    
+    transition: transform 0.4s; 
+    font-variant-ligatures: none; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* === 3. 语法高亮 === */
+.vs-keyword { color: var(--c-blue); }
+.vs-control { color: var(--c-purple); }
+.vs-class   { color: var(--c-teal); }
+.vs-func    { color: var(--c-func); }
+.vs-string  { color: var(--c-orange); }
+.vs-num     { color: var(--c-num); }
+.vs-comment { color: var(--c-green); }
+.vs-bracket { color: var(--c-bracket); }
+
+/* === 4. 新版交互逻辑 (Cursor Style) === */
+
+/* [FIXED] 每一行的容器 */
+.code-line-wrapper {
+    position: relative;
+    display: block !important;
+    height: auto !important;
+    margin: 0 !important;
+}
+
+/* 代码行基础样式 */
+.code-line { 
+    color: var(--c-var); 
+    position: relative; white-space: pre; 
+    padding-left: 15px; 
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border-left: 2px solid transparent; 
+}
+
+/* --- 可点击行的提示 --- */
+.code-line.has-phantom-trigger {
+    cursor: pointer;
+}
+.code-line.has-phantom-trigger:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* --- 激活状态 (Phantom Open) --- */
+.code-line.phantom-open {
+    opacity: 1; 
+    filter: none; 
+    background: linear-gradient(
+        90deg, 
+        rgba(0, 50, 100, 0.65) 0%, 
+        rgba(0, 50, 100, 0.25) 50%, 
+        transparent 100%
+    );
+    box-shadow: inset 0 0 20px rgba(0, 120, 255, 0.05);
+    z-index: 10;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    transform: translateX(5px);
+}
+
+/* --- 左侧长方形纹路 (实体锚点) --- */
+.code-line.phantom-open::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 6px; 
+    background-image: repeating-linear-gradient(
+        135deg,
+        var(--c-blue) 0px,
+        var(--c-blue) 2px,
+        transparent 2px,
+        transparent 4px
+    );
+    background-color: rgba(0, 122, 204, 0.1);
+    border-right: 1px solid var(--c-blue);
+    box-shadow: 0 0 10px rgba(0, 122, 204, 0.6);
+}
+
+/* --- AI Trigger Icon (✨) --- */
+.ai-trigger-icon {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 0.8em;
+    opacity: 0.4;
+    transition: all 0.3s;
+    filter: grayscale(1);
+    transform: translateY(-2px); 
+}
+.code-line.has-phantom-trigger:hover .ai-trigger-icon,
+.code-line.phantom-open .ai-trigger-icon {
+    opacity: 1;
+    filter: grayscale(0);
+    transform: scale(1.2) translateY(-2px);
+    text-shadow: 0 0 10px gold;
+}
+
+/* === 5. Phantom Row (虚拟代码容器) === */
+.phantom-row {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform-origin: top;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    padding-left: 45px; 
+    transform: translateY(-15px); 
+        /* 增加一点左边距，形成层级缩进结构 */
+        margin-left: 30px; 
+}
+
+.phantom-row.active {
+    max-height: 800px; 
+    opacity: 1;
+    margin-bottom: 20px; 
+    margin-top: 5px;
+    transform: translateY(0);
+}
+
+/* --- 注释内容样式 --- */
+/* style.css - 替换原有的 .phantom-content */
+
+.phantom-content {
+    /* --- 核心修改区域 Start --- */
+
+    /* 1. 背景色：比主界面稍微亮一点点，增加层次对比 */
+    background: rgba(113, 120, 141, 0.3); 
+    
+    /* 2. 极致模糊：比主容器更强的模糊，拉开距离感 */
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    
+    /* 3. 锋利的高光边框：顶部用更亮的白线，强调“切面”感 */
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 3px solid #00d2ff;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    
+    /* 4. 强烈的悬浮质感阴影 */
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.5),          /* 深色悬浮阴影 */
+        inset 0 2px 3px rgba(255, 255, 255, 0.15); /* 顶部强烈的内发光高光 */
+        
+    /* --- 核心修改区域 End --- */
+
+    border-radius: 12px; /*稍微加大一点圆角*/
+    padding: 18px 25px;
+    font-family: 'Inter', sans-serif;
+    color: #cccccc;
+    
+    margin-top: 12px; 
+    margin-bottom: 12px;
+    position: relative; /* 确保 z-index 正确 */
+    z-index: 10;
+}
+
+.phantom-title {
+    color: var(--c-func); 
+    font-size: 1.1rem;       /* <--- 修改这里 (例如改为 1.1rem 或 18px) */
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+}
+.phantom-title::before {
+    content: '💡'; 
+    font-size: 1rem;
+}
+
+.phantom-body {
+    font-size: 1.7rem;         /* <--- 修改这里 (例如改为 1.2rem 或 20px) */
+    line-height: 1.6;        /* 如果文字变大，建议适当增加行高，例如改为 1.8 */
+    color: rgb(219, 241, 255);
+}
+
+/* === 6. Intro & Clean Up === */
+.intro-wrapper { text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.cover-big-text { font-size: 7rem; font-weight: 800; line-height: 1; margin: 20px 0; text-shadow: 0 10px 50px rgba(0,0,0,0.5); animation: fadeInUp 0.8s ease-out; background: linear-gradient(to bottom, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.cover-sub { font-size: 1.4rem; letter-spacing: 4px; text-transform: uppercase; color: var(--c-blue); animation: fadeInUp 1s 0.2s ease-out backwards; }
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1200px; width: 100%; margin-top: 40px; padding: 0 40px; }
+.feature-box { background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); animation: fadeInUp 0.5s backwards; transition: transform 0.3s; text-align: left; height: 100%; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
+.feature-box:hover { transform: translateY(-5px); border-color: var(--c-teal); background: rgba(255,255,255,0.08); }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+#bubble-layer, #connector-svg, .code-editor-textarea { display: none !important; }
+
+/* style.css 追加或确认以下内容 */
+
+/* --- 交互触发器 --- */
+.code-line.has-phantom-trigger {
+    cursor: pointer;
+    /* 增加一点 hover 背景，提示可点击 */
+}
+.code-line.has-phantom-trigger:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* --- 图标微调 --- */
+.ai-trigger-icon {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 0.8em;
+    opacity: 0.5;
+    transition: all 0.3s;
+    filter: grayscale(1);
+    transform: translateY(-1px);
+    vertical-align: middle;
+}
+/* 鼠标悬停或打开状态下，图标变亮 */
+.code-line.has-phantom-trigger:hover .ai-trigger-icon,
+.code-line.phantom-open .ai-trigger-icon {
+    opacity: 1;
+    filter: none;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    transform: scale(1.2) translateY(-1px);
+}
+
+/* --- 激活的代码行样式 --- */
+.code-line.phantom-open {
+    /* 保持原有的深蓝渐变，增加左侧边框指示 */
+    background: linear-gradient(90deg, rgba(30, 60, 90, 0.6) 0%, transparent 100%);
+    border-left-color: var(--c-blue); /* 之前是 transparent */
+}
+
+/* --- Phantom Row (隐藏容器) --- */
+.phantom-row {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px); /* 初始位置略微向上 */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 布局 */
+    margin-left: 20px; /* 缩进，体现层级 */
+    padding-right: 40px;
+}
+
+/* --- Phantom Row (激活/展开) --- */
+.phantom-row.active {
+    max-height: 500px; /* 足够大以容纳内容 */
+    opacity: 1;
+    transform: translateY(0);
+    margin-bottom: 15px;
+    margin-top: 5px;
+}
+
+/* style.css */
+
+/* 针对 Team Member 名字的特定调整 */
+.feature-box div[data-key="member"] {
+    font-size: 30px;  /* 在这里调整大小 */
+    line-height: 1.6; /* 调整行高，防止文字挤在一起 */
+}
